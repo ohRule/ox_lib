@@ -12,15 +12,3 @@ export const debugProgressbar = () => {
     },
   ]);
 };
-
-export const debugCircleProgressbar = () => {
-  debugData([
-    {
-      action: 'circleProgress',
-      data: {
-        duration: 8000,
-        label: 'Using Armour',
-      },
-    },
-  ]);
-};

@@ -1,21 +1,95 @@
-import { ActionIcon, Button, Divider, Drawer, Stack, Tooltip } from '@mantine/core';
+import { ActionIcon, Button, Divider, Drawer, Slider, Stack, Text, Tooltip } from '@mantine/core';
 import { debugAlert } from './debug/alert';
 import { debugContext } from './debug/context';
 import { debugInput } from './debug/input';
 import { debugMenu } from './debug/menu';
 import { debugCustomNotification } from './debug/notification';
-import { debugCircleProgressbar, debugProgressbar } from './debug/progress';
+import { debugProgressbar } from './debug/progress';
 import { debugTextUI } from './debug/textui';
 import { debugSkillCheck } from './debug/skillcheck';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { HOTBAR_GAP_VH } from '../progress/hotbarLayout';
 import { debugRadial } from './debug/radial';
 import LibIcon from '../../components/LibIcon';
 
+const HOTBAR_SLOTS = 6;
+
+/** Browser stand-in for the ox_inventory hotbar, using the same size and scale origin. */
+const DevHotbar: React.FC<{ scale: number }> = ({ scale }) => {
+  const slotsRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const publish = () => {
+      const slots = slotsRef.current;
+      if (!slots) return;
+
+      const rect = slots.getBoundingClientRect();
+      const gap = (HOTBAR_GAP_VH / 100) * window.innerHeight;
+
+      window.dispatchEvent(
+        new MessageEvent('message', {
+          data: {
+            action: 'hotbarLayout',
+            data: {
+              scale,
+              bottom: Math.round(window.innerHeight - rect.top + gap),
+            },
+          },
+        })
+      );
+    };
+
+    publish();
+    window.addEventListener('resize', publish);
+    return () => window.removeEventListener('resize', publish);
+  }, [scale]);
+
+  return (
+    <div
+      style={{
+        position: 'absolute',
+        left: 0,
+        bottom: '2vh',
+        width: '100%',
+        display: 'flex',
+        justifyContent: 'center',
+        pointerEvents: 'none',
+      }}
+    >
+      <div
+        ref={slotsRef}
+        style={{
+          display: 'flex',
+          gap: '0.55vh',
+          transform: `scale(${scale})`,
+          transformOrigin: 'center bottom',
+        }}
+      >
+        {Array.from({ length: HOTBAR_SLOTS }, (_, index) => (
+          <div
+            key={index}
+            style={{
+              width: '9.6vh',
+              height: '9.6vh',
+              boxSizing: 'border-box',
+              background: 'rgba(20, 20, 22, 0.55)',
+              border: '1px solid rgba(255, 255, 255, 0.12)',
+              borderRadius: '0.45vh',
+            }}
+          />
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const Dev: React.FC = () => {
   const [opened, setOpened] = useState(false);
+  const [hotbarScale, setHotbarScale] = useState(1);
 
   return (
     <>
+      <DevHotbar scale={hotbarScale} />
       <Tooltip label="Developer drawer" position="bottom">
         <ActionIcon
           onClick={() => setOpened(true)}
@@ -58,9 +132,15 @@ const Dev: React.FC = () => {
           <Button fullWidth onClick={() => debugProgressbar()}>
             Activate progress bar
           </Button>
-          <Button fullWidth onClick={() => debugCircleProgressbar()}>
-            Activate progress circle
-          </Button>
+          <Text size="sm">Hotbar scale {hotbarScale.toFixed(2)}</Text>
+          <Slider
+            min={0.75}
+            max={1.35}
+            step={0.01}
+            value={hotbarScale}
+            onChange={setHotbarScale}
+            label={(value) => value.toFixed(2)}
+          />
           <Divider />
           <Button fullWidth onClick={() => debugTextUI()}>
             Show TextUI

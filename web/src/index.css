@@ -289,6 +289,15 @@
 
 html {
   color-scheme: normal !important;
+  /* Matches ox_inventory slots until the inventory sends the live values. */
+  --ox-progress-bottom: 12.2vh;
+  --ox-hotbar-scale: 1;
+  --ox-progress-highlight: 180, 180, 185;
+  --ox-progress-alpha: 0.55;
+  /* Left text UI sits on the minimap until the game sends the live rect. */
+  --ox-minimap-left: 2vh;
+  --ox-minimap-top: 80vh;
+  --ox-minimap-width: 25vh;
 }
 
 body {
@@ -342,4 +351,141 @@ code {
 
 .toast-error {
   background-color: #c0392b;
+}
+
+/* Input dialog, matched to the list menu panel. */
+.ox-input-dialog .mantine-InputWrapper-label,
+.ox-input-dialog .ox-dialog-label {
+  color: #e8e8e8;
+  font-family: Roboto, sans-serif;
+  font-size: 1.25vh;
+  font-weight: 500;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.ox-input-dialog .mantine-InputWrapper-description {
+  color: rgba(232, 232, 232, 0.65);
+  font-family: Roboto, sans-serif;
+}
+
+.ox-input-dialog .mantine-Input-input {
+  background-color: rgba(0, 0, 0, 0.28);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.45vh;
+  color: #e8e8e8;
+  font-family: Roboto, sans-serif;
+}
+
+.ox-input-dialog .mantine-Input-input::placeholder {
+  color: rgba(232, 232, 232, 0.4);
+}
+
+.ox-input-dialog .mantine-Input-input:focus,
+.ox-input-dialog .mantine-Input-input:focus-within {
+  border-color: rgba(var(--ox-progress-highlight), 0.95);
+}
+
+.ox-input-dialog .mantine-Input-icon,
+.ox-input-dialog .mantine-NumberInput-control,
+.ox-input-dialog .mantine-PasswordInput-innerInput {
+  color: #e8e8e8;
+}
+
+.ox-input-dialog .mantine-NumberInput-control {
+  border-color: rgba(255, 255, 255, 0.12);
+  background-color: transparent;
+  color: #e8e8e8;
+}
+
+.ox-input-dialog .mantine-Checkbox-label {
+  color: #e8e8e8;
+  font-family: Roboto, sans-serif;
+}
+
+.ox-input-dialog .mantine-Checkbox-input {
+  background-color: rgba(0, 0, 0, 0.28);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.ox-input-dialog .mantine-Checkbox-input:checked {
+  background-color: rgba(var(--ox-progress-highlight), 0.72);
+  border-color: rgba(var(--ox-progress-highlight), 0.95);
+}
+
+.ox-input-dialog .mantine-Slider-track::before {
+  background-color: rgba(0, 0, 0, 0.45) !important;
+}
+
+.ox-input-dialog .mantine-Slider-bar {
+  background-color: rgb(var(--ox-progress-highlight)) !important;
+}
+
+.ox-input-dialog .mantine-Slider-thumb {
+  background-color: rgb(var(--ox-progress-highlight)) !important;
+  border-color: #fff !important;
+}
+
+.ox-input-dialog .mantine-Slider-markFilled {
+  border-color: rgb(var(--ox-progress-highlight)) !important;
+}
+
+.ox-input-dialog .mantine-Modal-title p,
+.ox-input-dialog .mantine-Modal-title h1,
+.ox-input-dialog .mantine-Modal-title h2,
+.ox-input-dialog .mantine-Modal-title h3 {
+  margin: 0;
+  color: #fff;
+  font-size: 1.7vh;
+  font-weight: 600;
+  line-height: 1.2;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.ox-input-dialog .ox-dialog-cancel {
+  background-color: transparent !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #e8e8e8 !important;
+  border-radius: 0.45vh;
+}
+
+.ox-input-dialog .ox-dialog-confirm {
+  background-color: rgba(var(--ox-progress-highlight), 0.72) !important;
+  border: 1px solid rgba(var(--ox-progress-highlight), 0.95) !important;
+  color: #fff !important;
+  border-radius: 0.45vh;
+}
+
+.ox-input-dialog .ox-dialog-confirm:hover {
+  background-color: rgba(var(--ox-progress-highlight), 0.85) !important;
+}
+
+.ox-input-dialog .mantine-Slider-markLabel {
+  color: rgba(232, 232, 232, 0.7);
+  font-family: Roboto, sans-serif;
+}
+
+.mantine-Select-dropdown,
+.mantine-MultiSelect-dropdown,
+.mantine-ColorInput-dropdown,
+.mantine-DatePicker-dropdown,
+.mantine-DateRangePicker-dropdown {
+  background-color: rgba(20, 20, 22, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 0.45vh;
+}
+
+.mantine-Select-item,
+.mantine-MultiSelect-item {
+  color: #e8e8e8;
+  font-family: Roboto, sans-serif;
+}
+
+.mantine-Select-item[data-hovered],
+.mantine-Select-item[data-selected],
+.mantine-MultiSelect-item[data-hovered],
+.mantine-MultiSelect-item[data-selected] {
+  background-color: rgba(var(--ox-progress-highlight), 0.45);
+  color: #fff;
 }

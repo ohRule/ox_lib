@@ -1,39 +1,73 @@
 import { useNuiEvent } from '../../hooks/useNuiEvent';
 import { toast, Toaster } from 'react-hot-toast';
 import ReactMarkdown from 'react-markdown';
-import { Box, Center, createStyles, Group, keyframes, RingProgress, Stack, Text, ThemeIcon } from '@mantine/core';
-import React, { useState } from 'react';
+import { Box, createStyles, Group, keyframes, Stack, Text, useMantineTheme } from '@mantine/core';
+import React from 'react';
 import tinycolor from 'tinycolor2';
 import type { NotificationProps } from '../../typings';
 import MarkdownComponents from '../../config/MarkdownComponents';
 import LibIcon from '../../components/LibIcon';
 
-const useStyles = createStyles((theme) => ({
+const useStyles = createStyles(() => ({
   container: {
     width: 300,
-    height: 'fit-content',
-    backgroundColor: theme.colors.dark[6],
-    color: theme.colors.dark[0],
-    padding: 12,
-    borderRadius: theme.radius.sm,
+    height: '35px',
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    backgroundColor: 'rgba(20, 20, 22, var(--ox-progress-alpha, 0.55))',
+    color: '#e8e8e8',
+    padding: '0 12px',
+    borderRadius: '0.45vh',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
     fontFamily: 'Roboto',
-    boxShadow: theme.shadows.sm,
+  },
+  icon: {
+    flexShrink: 0,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: '100%',
+    fontSize: 26,
+    lineHeight: 1,
+  },
+  content: {
+    flex: 1,
+    minWidth: 0,
   },
   title: {
     fontWeight: 500,
     lineHeight: 'normal',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
   },
   description: {
     fontSize: 12,
-    color: theme.colors.dark[2],
+    color: 'rgba(232, 232, 232, 0.7)',
     fontFamily: 'Roboto',
     lineHeight: 'normal',
+    overflow: 'hidden',
+    '& p': {
+      margin: 0,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
   },
   descriptionOnly: {
     fontSize: 14,
-    color: theme.colors.dark[2],
+    color: '#e8e8e8',
     fontFamily: 'Roboto',
     lineHeight: 'normal',
+    overflow: 'hidden',
+    '& p': {
+      margin: 0,
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+      whiteSpace: 'nowrap',
+    },
   },
 }));
 
@@ -71,14 +105,17 @@ const getAnimation = (visible: boolean, position: string) => {
   return `${createAnimation(animation.from, animation.to, visible)} ${animationOptions}`
 };
 
-const durationCircle = keyframes({
-  '0%': { strokeDasharray: `0, ${15.1 * 2 * Math.PI}` },
-  '100%': { strokeDasharray: `${15.1 * 2 * Math.PI}, 0` },
-});
-
 const Notifications: React.FC = () => {
   const { classes } = useStyles();
-  const [toastKey, setToastKey] = useState(0);
+  const theme = useMantineTheme();
+
+  // Mantine tokens like teal.6, or a colour already resolved from iconColor.
+  const cssColor = (color: string) => {
+    const [name, shade] = color.split('.');
+    const swatch = theme.colors[name];
+    if (swatch && shade) return swatch[Number(shade)] ?? color;
+    return color;
+  };
 
   useNuiEvent<NotificationProps>('notify', (data) => {
     if (!data.title && !data.description) return;
@@ -88,10 +125,6 @@ const Notifications: React.FC = () => {
 
     let iconColor: string;
     let position = data.position || 'top-right';
-
-    data.showDuration = data.showDuration !== undefined ? data.showDuration : true;
-
-    if (toastId) setToastKey(prevKey => prevKey + 1);
 
     // Backwards compat with old notifications
     switch (position) {
@@ -106,16 +139,16 @@ const Notifications: React.FC = () => {
     if (!data.icon) {
       switch (data.type) {
         case 'error':
-          data.icon = 'circle-xmark';
+          data.icon = 'xmark';
           break;
         case 'success':
-          data.icon = 'circle-check';
+          data.icon = 'check';
           break;
         case 'warning':
-          data.icon = 'circle-exclamation';
+          data.icon = 'exclamation';
           break;
         default:
-          data.icon = 'circle-info';
+          data.icon = 'info';
           break;
       }
     }
@@ -148,52 +181,19 @@ const Notifications: React.FC = () => {
           }}
           className={`${classes.container}`}
         >
-          <Group noWrap spacing={12}>
+          <Group noWrap spacing={12} style={{ width: '100%', height: '100%', minWidth: 0 }}>
             {data.icon && (
-              <>
-                {data.showDuration ? (
-                  <RingProgress
-                    key={toastKey}
-                    size={38}
-                    thickness={2}
-                    sections={[{ value: 100, color: iconColor }]}
-                    style={{ alignSelf: !data.alignIcon || data.alignIcon === 'center' ? 'center' : 'start' }}
-                    styles={{
-                      root: {
-                        '> svg > circle:nth-of-type(2)': {
-                          animation: `${durationCircle} linear forwards reverse`,
-                          animationDuration: `${duration}ms`,
-                        },
-                        margin: -3,
-                      },
-                    }}
-                    label={
-                      <Center>
-                        <ThemeIcon
-                          color={iconColor}
-                          radius="xl"
-                          size={32}
-                          variant={tinycolor(iconColor).getAlpha() < 0 ? undefined : 'light'}
-                        >
-                          <LibIcon icon={data.icon} fixedWidth color={iconColor} animation={data.iconAnimation} />
-                        </ThemeIcon>
-                      </Center>
-                    }
-                  />
-                ) : (
-                  <ThemeIcon
-                    color={iconColor}
-                    radius="xl"
-                    size={32}
-                    variant={tinycolor(iconColor).getAlpha() < 0 ? undefined : 'light'}
-                    style={{ alignSelf: !data.alignIcon || data.alignIcon === 'center' ? 'center' : 'start' }}
-                  >
-                    <LibIcon icon={data.icon} fixedWidth color={iconColor} animation={data.iconAnimation} />
-                  </ThemeIcon>
-                )}
-              </>
+              <Box
+                className={classes.icon}
+                style={{
+                  color: cssColor(iconColor),
+                  alignSelf: !data.alignIcon || data.alignIcon === 'center' ? 'center' : 'start',
+                }}
+              >
+                <LibIcon icon={data.icon} fixedWidth color={cssColor(iconColor)} animation={data.iconAnimation} />
+              </Box>
             )}
-            <Stack spacing={0}>
+            <Stack spacing={0} className={classes.content}>
               {data.title && <Text className={classes.title}>{data.title}</Text>}
               {data.description && (
                 <ReactMarkdown

@@ -1,5 +1,4 @@
 import Notifications from './features/notifications/NotificationWrapper';
-import CircleProgressbar from './features/progress/CircleProgressbar';
 import Progressbar from './features/progress/Progressbar';
 import TextUI from './features/textui/TextUI';
 import InputDialog from './features/dialog/InputDialog';
@@ -29,7 +28,6 @@ const App: React.FC = () => {
   return (
     <MantineProvider withNormalizeCSS withGlobalStyles theme={{ ...theme, ...config }}>
       <Progressbar />
-      <CircleProgressbar />
       <Notifications />
       <TextUI />
       <InputDialog />

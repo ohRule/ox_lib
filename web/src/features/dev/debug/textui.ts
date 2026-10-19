@@ -7,7 +7,7 @@ export const debugTextUI = () => {
       action: 'textUi',
       data: {
         text: '[E] - Access locker inventory  \n [G] - Do something else',
-        position: 'right-center',
+        position: 'left-center',
         icon: 'door-open',
       },
     },

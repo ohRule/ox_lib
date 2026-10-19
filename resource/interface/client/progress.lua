@@ -256,21 +256,11 @@ function lib.progressBar(data)
     end
 end
 
+--- Same bar as lib.progressBar. `position` is accepted and ignored.
 ---@param data ProgressProps
 ---@return boolean?
 function lib.progressCircle(data)
-    while progress ~= nil do Wait(0) end
-
-    if not interruptProgress(data) then
-        return startProgress(data, {
-            action = 'circleProgress',
-            data = {
-                duration = data.duration,
-                position = data.position,
-                label = data.label
-            }
-        })
-    end
+    return lib.progressBar(data)
 end
 
 function lib.cancelProgress()
@@ -289,6 +279,76 @@ end
 RegisterNUICallback('progressComplete', function(data, cb)
     cb(1)
     progress = nil
+end)
+
+-- Last ox_inventory hotbar layout. The progress UI sits just above it and uses its colours.
+local hotbarScale = 1.0
+local hotbarBottom = nil
+local hotbarHighlight = '180, 180, 185'
+local hotbarOpacity = 0.55
+
+local function pushHotbarLayout()
+    SendNUIMessage({
+        action = 'hotbarLayout',
+        data = {
+            scale = hotbarScale,
+            bottom = hotbarBottom,
+            highlight = hotbarHighlight,
+            opacity = hotbarOpacity,
+        }
+    })
+end
+
+--- ox_inventory reports this when the player changes hotbar scale or highlight.
+--- Measured `bottom` is pixels from the screen bottom to just above the slots.
+AddEventHandler('ox_lib:setHotbarLayout', function(scale, bottom, highlight, opacity)
+    scale = tonumber(scale)
+
+    if scale then
+        if scale < 0.75 then scale = 0.75 end
+        if scale > 1.35 then scale = 1.35 end
+        hotbarScale = scale
+    end
+
+    bottom = tonumber(bottom)
+    hotbarBottom = bottom and bottom > 0 and bottom or nil
+
+    if type(highlight) == 'string' and highlight ~= '' then
+        hotbarHighlight = highlight
+    end
+
+    opacity = tonumber(opacity)
+    if opacity then
+        if opacity < 0.25 then opacity = 0.25 end
+        if opacity > 0.85 then opacity = 0.85 end
+        hotbarOpacity = opacity
+    end
+
+    pushHotbarLayout()
+end)
+
+-- NUI mounted (or remounted) after the inventory may already have sent a scale.
+RegisterNUICallback('progressReady', function(_, cb)
+    cb(1)
+
+    if GetResourceState('ox_inventory') == 'started' then
+        local ok, layout = pcall(function()
+            return exports.ox_inventory:getHotbarLayout()
+        end)
+
+        if ok and type(layout) == 'table' then
+            hotbarScale = tonumber(layout.scale) or hotbarScale
+            local bottom = tonumber(layout.bottom)
+            hotbarBottom = bottom and bottom > 0 and bottom or nil
+            if type(layout.highlight) == 'string' and layout.highlight ~= '' then
+                hotbarHighlight = layout.highlight
+            end
+            local opacity = tonumber(layout.opacity)
+            if opacity then hotbarOpacity = opacity end
+        end
+    end
+
+    pushHotbarLayout()
 end)
 
 RegisterCommand('cancelprogress', function()

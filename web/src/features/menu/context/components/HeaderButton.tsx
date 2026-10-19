@@ -1,4 +1,4 @@
-import { Button, createStyles } from '@mantine/core';
+import { Box, createStyles } from '@mantine/core';
 import { IconProp } from '@fortawesome/fontawesome-svg-core';
 import LibIcon from '../../../../components/LibIcon';
 
@@ -9,21 +9,16 @@ interface Props {
   handleClick: () => void;
 }
 
-const useStyles = createStyles((theme, params: { canClose?: boolean }) => ({
+const useStyles = createStyles((_theme, params: { canClose?: boolean }) => ({
   button: {
-    borderRadius: 4,
-    flex: '1 15%',
-    alignSelf: 'stretch',
-    height: 'auto',
-    textAlign: 'center',
+    width: '4.2vh',
+    height: '4.2vh',
+    display: 'flex',
+    alignItems: 'center',
     justifyContent: 'center',
-    padding: 2,
-  },
-  root: {
-    border: 'none',
-  },
-  label: {
-    color: params.canClose === false ? theme.colors.dark[2] : theme.colors.dark[0],
+    flexShrink: 0,
+    color: params.canClose === false ? 'rgba(255, 255, 255, 0.35)' : '#fff',
+    cursor: params.canClose === false ? 'default' : 'pointer',
   },
 }));
 
@@ -31,15 +26,9 @@ const HeaderButton: React.FC<Props> = ({ icon, canClose, iconSize, handleClick }
   const { classes } = useStyles({ canClose });
 
   return (
-    <Button
-      variant="default"
-      className={classes.button}
-      classNames={{ label: classes.label, root: classes.root }}
-      disabled={canClose === false}
-      onClick={handleClick}
-    >
+    <Box className={classes.button} onClick={canClose === false ? undefined : handleClick}>
       <LibIcon icon={icon} fontSize={iconSize} fixedWidth />
-    </Button>
+    </Box>
   );
 };
 

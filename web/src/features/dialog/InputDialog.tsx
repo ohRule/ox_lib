@@ -123,7 +123,38 @@ const InputDialog: React.FC = () => {
         closeOnEscape={fields.options?.allowCancel !== false}
         closeOnClickOutside={false}
         size={fields.options?.size || 'xs'}
-        styles={{ title: { textAlign: 'center', width: '100%', fontSize: 18 } }}
+        padding={0}
+        classNames={{ modal: 'ox-input-dialog' }}
+        styles={{
+          modal: {
+            backgroundColor: 'rgba(20, 20, 22, var(--ox-progress-alpha, 0.55))',
+            border: '1px solid rgba(255, 255, 255, 0.12)',
+            borderRadius: '0.45vh',
+            padding: 0,
+            overflow: 'hidden',
+          },
+          header: {
+            backgroundColor: 'rgb(var(--ox-progress-highlight))',
+            margin: 0,
+            padding: '0 1.2vh',
+            height: '4.2vh',
+            borderRadius: 0,
+          },
+          title: {
+            color: '#fff',
+            fontWeight: 600,
+            textTransform: 'uppercase',
+            letterSpacing: '0.04em',
+            fontSize: '1.7vh',
+            fontFamily: 'Roboto, sans-serif',
+            width: '100%',
+            marginRight: 0,
+            textAlign: 'center',
+          },
+          body: {
+            padding: '1.4vh',
+          },
+        }}
         title={fields.heading}
         withCloseButton={false}
         overlayOpacity={0.5}
@@ -175,12 +206,20 @@ const InputDialog: React.FC = () => {
                 uppercase
                 variant="default"
                 onClick={() => handleClose()}
-                mr={3}
                 disabled={fields.options?.allowCancel === false}
+                styles={{
+                  root: {
+                    backgroundColor: 'transparent',
+                    border: '1px solid rgba(255, 255, 255, 0.12)',
+                    color: '#e8e8e8',
+                    borderRadius: '0.45vh',
+                    fontFamily: 'Roboto, sans-serif',
+                  },
+                }}
               >
                 {locale.ui.cancel}
               </Button>
-              <Button uppercase variant="light" type="submit">
+              <Button uppercase type="submit" className="ox-dialog-confirm">
                 {locale.ui.confirm}
               </Button>
             </Group>

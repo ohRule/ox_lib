@@ -10,9 +10,10 @@ import LibIcon from '../../../components/LibIcon';
 
 const useStyles = createStyles((theme, params: { position?: MenuPosition; itemCount: number; selected: number }) => ({
   tooltip: {
-    backgroundColor: theme.colors.dark[6],
-    color: theme.colors.dark[2],
-    borderRadius: theme.radius.sm,
+    backgroundColor: 'rgba(18, 18, 20, 0.92)',
+    color: '#e8e8e8',
+    borderRadius: '0.45vh',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
     maxWidth: 350,
     whiteSpace: 'normal',
   },
@@ -28,32 +29,33 @@ const useStyles = createStyles((theme, params: { position?: MenuPosition; itemCo
     bottom: params.position === 'bottom-left' || params.position === 'bottom-right' ? 1 : undefined,
     fontFamily: 'Roboto',
     width: 384,
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    borderRadius: '0.45vh',
+    overflow: 'hidden',
+    backgroundColor: 'rgba(20, 20, 22, var(--ox-progress-alpha, 0.55))',
   },
   buttonsWrapper: {
     height: 'fit-content',
-    maxHeight: 415,
+    maxHeight: '40vh',
     overflow: 'hidden',
-    borderRadius: params.itemCount <= 6 || params.selected === params.itemCount - 1 ? theme.radius.md : undefined,
-    backgroundColor: theme.colors.dark[8],
-    borderTopLeftRadius: 0,
-    borderTopRightRadius: 0,
   },
   scrollArrow: {
-    backgroundColor: theme.colors.dark[8],
     textAlign: 'center',
-    borderBottomLeftRadius: theme.radius.md,
-    borderBottomRightRadius: theme.radius.md,
-    height: 25,
+    height: '2.4vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderTop: '1px solid rgba(255, 255, 255, 0.12)',
   },
   scrollArrowIcon: {
-    color: theme.colors.dark[2],
-    fontSize: 20,
+    color: '#e8e8e8',
+    fontSize: '1.4vh',
   },
 }));
 
 const ListMenu: React.FC = () => {
   const [menu, setMenu] = useState<MenuSettings>({
-    position: 'top-left',
+    position: 'bottom-right',
     title: '',
     items: [],
   });
@@ -181,7 +183,7 @@ const ListMenu: React.FC = () => {
     if (!data.startItemIndex || data.startItemIndex < 0) data.startItemIndex = 0;
     else if (data.startItemIndex >= data.items.length) data.startItemIndex = data.items.length - 1;
     setSelected(data.startItemIndex);
-    if (!data.position) data.position = 'top-left';
+    if (!data.position) data.position = 'bottom-right';
     listRefs.current = [];
     setMenu(data);
     setVisible(true);
@@ -219,7 +221,7 @@ const ListMenu: React.FC = () => {
             <Header title={menu.title} />
             <Box className={classes.buttonsWrapper} onKeyDown={(e: React.KeyboardEvent<HTMLDivElement>) => moveMenu(e)}>
               <FocusTrap active={visible}>
-                <Stack spacing={8} p={8} sx={{ overflowY: 'scroll' }}>
+                <Stack spacing={0} sx={{ overflowY: 'scroll' }}>
                   {menu.items.map((item, index) => (
                     <React.Fragment key={`menu-item-${index}`}>
                       {item.label && (
@@ -228,6 +230,7 @@ const ListMenu: React.FC = () => {
                           item={item}
                           scrollIndex={indexStates[index]}
                           checked={checkedStates[index]}
+                          selected={selected === index}
                           ref={listRefs}
                         />
                       )}
@@ -236,7 +239,7 @@ const ListMenu: React.FC = () => {
                 </Stack>
               </FocusTrap>
             </Box>
-            {menu.items.length > 6 && selected !== menu.items.length - 1 && (
+            {menu.items.length * 3.6 > 40 && selected !== menu.items.length - 1 && (
               <Box className={classes.scrollArrow}>
                 <LibIcon icon="chevron-down" className={classes.scrollArrowIcon} />
               </Box>
