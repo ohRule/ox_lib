@@ -46,13 +46,22 @@ const Indicator: React.FC<Props> = ({
 
       const speed = Math.max(multiplier || 0, 0.0001);
       const duration = BASE_DURATION_MS / speed;
+      const bouncing = skillCheck.style === 'bounce';
 
-      const progress = Math.min(elapsed / duration, 1);
+      // One pass stops at the end. Bounce reverses and keeps going until a press or hide.
+      let progress = elapsed / duration;
+      if (bouncing) {
+        const cycle = progress % 2;
+        progress = cycle <= 1 ? cycle : 2 - cycle;
+      } else {
+        progress = Math.min(progress, 1);
+      }
+
       const newAngle = -90 + progress * 360;
 
       setIndicatorAngle(newAngle);
 
-      if (newAngle + 90 >= 360) {
+      if (!bouncing && newAngle + 90 >= 360) {
         completedRef.current = true;
         stopAnimation();
         handleComplete(false);
@@ -61,7 +70,7 @@ const Indicator: React.FC<Props> = ({
 
       rafIdRef.current = requestAnimationFrame(animate);
     },
-    [multiplier, handleComplete]
+    [multiplier, handleComplete, skillCheck.style]
   );
   const keyHandler = useCallback(
     (e: KeyboardEvent) => {
@@ -122,7 +131,9 @@ const Indicator: React.FC<Props> = ({
     handleComplete,
   ]);
 
-  return <circle transform={`rotate(${indicatorAngle}, 250, 250)`} className={className} />;
+  const position = ((indicatorAngle + 90) / 360) * 100;
+
+  return <div className={className} style={{ left: `${position}%` }} />;
 };
 
 export default Indicator;

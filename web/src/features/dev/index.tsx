@@ -15,11 +15,21 @@ import LibIcon from '../../components/LibIcon';
 const HOTBAR_SLOTS = 6;
 
 /** Browser stand-in for the ox_inventory hotbar, using the same size and scale origin. */
-const DevHotbar: React.FC<{ scale: number }> = ({ scale }) => {
+const DevHotbar: React.FC<{ scale: number; hidden: boolean }> = ({ scale, hidden }) => {
   const slotsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const publish = () => {
+      // Same signal the inventory sends when the HUD hotbar is hidden.
+      if (hidden) {
+        window.dispatchEvent(
+          new MessageEvent('message', {
+            data: { action: 'hotbarLayout', data: { scale, active: false } },
+          })
+        );
+        return;
+      }
+
       const slots = slotsRef.current;
       if (!slots) return;
 
@@ -33,6 +43,7 @@ const DevHotbar: React.FC<{ scale: number }> = ({ scale }) => {
             data: {
               scale,
               bottom: Math.round(window.innerHeight - rect.top + gap),
+              active: true,
             },
           },
         })
@@ -42,7 +53,9 @@ const DevHotbar: React.FC<{ scale: number }> = ({ scale }) => {
     publish();
     window.addEventListener('resize', publish);
     return () => window.removeEventListener('resize', publish);
-  }, [scale]);
+  }, [scale, hidden]);
+
+  if (hidden) return null;
 
   return (
     <div
@@ -86,10 +99,11 @@ const DevHotbar: React.FC<{ scale: number }> = ({ scale }) => {
 const Dev: React.FC = () => {
   const [opened, setOpened] = useState(false);
   const [hotbarScale, setHotbarScale] = useState(1);
+  const [hotbarHidden, setHotbarHidden] = useState(false);
 
   return (
     <>
-      <DevHotbar scale={hotbarScale} />
+      <DevHotbar scale={hotbarScale} hidden={hotbarHidden} />
       <Tooltip label="Developer drawer" position="bottom">
         <ActionIcon
           onClick={() => setOpened(true)}
@@ -132,6 +146,9 @@ const Dev: React.FC = () => {
           <Button fullWidth onClick={() => debugProgressbar()}>
             Activate progress bar
           </Button>
+          <Button fullWidth onClick={() => setHotbarHidden((hidden) => !hidden)}>
+            {hotbarHidden ? 'Enable hotbar' : 'Disable hotbar'}
+          </Button>
           <Text size="sm">Hotbar scale {hotbarScale.toFixed(2)}</Text>
           <Slider
             min={0.75}
@@ -148,6 +165,9 @@ const Dev: React.FC = () => {
           <Divider />
           <Button fullWidth onClick={() => debugSkillCheck()}>
             Run skill check
+          </Button>
+          <Button fullWidth onClick={() => debugSkillCheck('bounce')}>
+            Run bouncing skill check
           </Button>
         </Stack>
       </Drawer>

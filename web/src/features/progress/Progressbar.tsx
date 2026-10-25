@@ -36,10 +36,19 @@ const useStyles = createStyles(() => ({
     height: '100%',
     backgroundColor: 'rgba(var(--ox-progress-highlight), 0.72)',
   },
-  label: {
-    maxWidth: '100%',
+  header: {
+    display: 'flex',
+    alignItems: 'baseline',
+    justifyContent: 'space-between',
+    gap: '0.8vh',
+    width: '100%',
     marginBottom: '0.45vh',
     padding: '0 0.8vh',
+    boxSizing: 'border-box',
+  },
+  label: {
+    minWidth: 0,
+    flex: 1,
     textOverflow: 'ellipsis',
     overflow: 'hidden',
     whiteSpace: 'nowrap',
@@ -52,6 +61,16 @@ const useStyles = createStyles(() => ({
     color: '#e8e8e8',
     textShadow: '0 1px 2px rgba(0, 0, 0, 0.65)',
   },
+  percent: {
+    flexShrink: 0,
+    fontFamily: 'Roboto, sans-serif',
+    fontSize: '1.2vh',
+    fontWeight: 500,
+    letterSpacing: '0.06em',
+    lineHeight: 1,
+    color: '#e8e8e8',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.65)',
+  },
 }));
 
 const Progressbar: React.FC = () => {
@@ -61,6 +80,8 @@ const Progressbar: React.FC = () => {
   const [visible, setVisible] = React.useState(false);
   const [label, setLabel] = React.useState('');
   const [duration, setDuration] = React.useState(0);
+  const [percent, setPercent] = React.useState(0);
+  const [runId, setRunId] = React.useState(0);
 
   useNuiEvent('progressCancel', () => setVisible(false));
 
@@ -68,14 +89,34 @@ const Progressbar: React.FC = () => {
     setVisible(true);
     setLabel(data.label);
     setDuration(data.duration);
+    setPercent(0);
+    setRunId((id) => id + 1);
   });
+
+  // Keep the percent in step with the CSS fill, without re-rendering the bar itself.
+  React.useEffect(() => {
+    if (!visible || duration <= 0) return;
+
+    const start = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      setPercent(Math.min(100, Math.floor(((now - start) / duration) * 100)));
+      if (now - start < duration) frame = requestAnimationFrame(tick);
+    };
+
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [visible, duration, runId]);
 
   return (
     <>
       <Box className={classes.wrapper}>
         <ScaleFade visible={visible} onExitComplete={() => fetchNui('progressComplete')}>
           <Box className={classes.container}>
-            <Text className={classes.label}>{label}</Text>
+            <Box className={classes.header}>
+              <Text className={classes.label}>{label}</Text>
+              <Text className={classes.percent}>{percent}%</Text>
+            </Box>
             <Box className={classes.track}>
               <Box
                 className={classes.bar}

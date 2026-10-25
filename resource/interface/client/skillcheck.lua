@@ -13,8 +13,9 @@ local skillcheck
 
 ---@param difficulty SkillCheckDifficulity | SkillCheckDifficulity[]
 ---@param inputs string[]?
+---@param style 'bar' | 'bounce'? `bounce` oscillates until a press or cancel. A single difficulty is run three times. Defaults to one pass.
 ---@return boolean?
-function lib.skillCheck(difficulty, inputs)
+function lib.skillCheck(difficulty, inputs, style)
     if skillcheck then return end
     skillcheck = promise:new()
 
@@ -23,7 +24,8 @@ function lib.skillCheck(difficulty, inputs)
         action = 'startSkillCheck',
         data = {
             difficulty = difficulty,
-            inputs = inputs
+            inputs = inputs,
+            style = style
         }
     })
 

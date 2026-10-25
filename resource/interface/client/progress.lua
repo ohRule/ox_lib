@@ -286,6 +286,7 @@ local hotbarScale = 1.0
 local hotbarBottom = nil
 local hotbarHighlight = '180, 180, 185'
 local hotbarOpacity = 0.55
+local hotbarActive = true
 
 local function pushHotbarLayout()
     SendNUIMessage({
@@ -295,13 +296,15 @@ local function pushHotbarLayout()
             bottom = hotbarBottom,
             highlight = hotbarHighlight,
             opacity = hotbarOpacity,
+            active = hotbarActive,
         }
     })
 end
 
---- ox_inventory reports this when the player changes hotbar scale or highlight.
+--- ox_inventory reports this when the player changes hotbar scale, highlight, or visibility.
 --- Measured `bottom` is pixels from the screen bottom to just above the slots.
-AddEventHandler('ox_lib:setHotbarLayout', function(scale, bottom, highlight, opacity)
+--- `active` is false when the HUD hotbar is hidden, so the bar drops to the bottom margin.
+AddEventHandler('ox_lib:setHotbarLayout', function(scale, bottom, highlight, opacity, active)
     scale = tonumber(scale)
 
     if scale then
@@ -310,8 +313,17 @@ AddEventHandler('ox_lib:setHotbarLayout', function(scale, bottom, highlight, opa
         hotbarScale = scale
     end
 
+    if type(active) == 'boolean' then
+        hotbarActive = active
+    end
+
     bottom = tonumber(bottom)
-    hotbarBottom = bottom and bottom > 0 and bottom or nil
+    -- Hidden hotbar: no slot box, so the bar uses the screen-bottom margin instead.
+    if not hotbarActive then
+        hotbarBottom = nil
+    else
+        hotbarBottom = bottom and bottom > 0 and bottom or nil
+    end
 
     if type(highlight) == 'string' and highlight ~= '' then
         hotbarHighlight = highlight
@@ -345,6 +357,7 @@ RegisterNUICallback('progressReady', function(_, cb)
             end
             local opacity = tonumber(layout.opacity)
             if opacity then hotbarOpacity = opacity end
+            if type(layout.active) == 'boolean' then hotbarActive = layout.active end
         end
     end
 

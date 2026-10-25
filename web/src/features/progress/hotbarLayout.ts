@@ -24,6 +24,8 @@ export type HotbarLayout = {
   highlight?: string | null;
   /** Slot background opacity (0.25–0.85). */
   opacity?: number | null;
+  /** False when the HUD hotbar is hidden. Omitted means it is still showing. */
+  active?: boolean;
 };
 
 /** Fallback clearance when the inventory has not measured the hotbar yet. */
@@ -45,7 +47,9 @@ let layoutRequested = false;
 const applyHotbarOffset = (data?: HotbarLayout | null) => {
   const root = document.documentElement.style;
   // CSS variables so a scale or colour change does not re-render the bar and restart its animation.
-  root.setProperty(OFFSET_VAR, resolveHotbarOffset(data));
+  // A hidden hotbar leaves only the same bottom margin the slots use.
+  const offset = data?.active === false ? `${HOTBAR_BOTTOM_VH}vh` : resolveHotbarOffset(data);
+  root.setProperty(OFFSET_VAR, offset);
 
   if (typeof data?.scale === 'number') {
     const scale = Math.min(MAX_SCALE, Math.max(MIN_SCALE, data.scale));

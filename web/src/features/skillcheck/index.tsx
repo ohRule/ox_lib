@@ -2,10 +2,10 @@ import { useRef, useState } from 'react';
 import { useNuiEvent } from '../../hooks/useNuiEvent';
 import Indicator from './indicator';
 import { fetchNui } from '../../utils/fetchNui';
-import { Box, createStyles } from '@mantine/core';
-import type { GameDifficulty, SkillCheckProps } from '../../typings';
-
-export const circleCircumference = 2 * 50 * Math.PI;
+import { Box, createStyles, Text } from '@mantine/core';
+import type { GameDifficulty, SkillCheckProps, SkillCheckStyle } from '../../typings';
+import ScaleFade from '../../transitions/ScaleFade';
+import { useHotbarOffset } from '../progress/hotbarLayout';
 
 const getRandomAngle = (min: number, max: number) => Math.floor(Math.random() * (max - min)) + min;
 
@@ -15,82 +15,62 @@ const difficultyOffsets = {
   hard: 25,
 };
 
-const useStyles = createStyles((theme, params: { difficultyOffset: number }) => ({
-  svg: {
+/** Same chrome as the progress bar. The sweep is still the old 0–360 angle, drawn along the track. */
+const useStyles = createStyles(() => ({
+  container: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    width: 'calc((6 * 9.6vh + 5 * 0.55vh) * var(--ox-hotbar-scale))',
+  },
+  wrapper: {
+    width: '100%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
     position: 'absolute',
-    top: '50%',
-    left: '50%',
-    transform: 'translate(-50%, -50%)',
-    r: 50,
-    width: 500,
-    height: 500,
+    left: 0,
+    bottom: 'var(--ox-progress-bottom)',
   },
   track: {
-    fill: 'transparent',
-    stroke: theme.colors.dark[5],
-    strokeWidth: 8,
-    r: 50,
-    cx: 250,
-    cy: 250,
-    strokeDasharray: circleCircumference,
-    '@media (min-height: 1440px)': {
-      strokeWidth: 10,
-      r: 65,
-      strokeDasharray: 2 * 65 * Math.PI,
-    },
+    position: 'relative',
+    width: '100%',
+    height: '1.6vh',
+    boxSizing: 'border-box',
+    overflow: 'hidden',
+    borderRadius: '0.45vh',
+    border: '1px solid rgba(255, 255, 255, 0.12)',
+    backgroundColor: 'rgba(20, 20, 22, var(--ox-progress-alpha))',
   },
-  skillArea: {
-    fill: 'transparent',
-    stroke: theme.fn.primaryColor(),
-    strokeWidth: 8,
-    r: 50,
-    cx: 250,
-    cy: 250,
-    strokeDasharray: circleCircumference,
-    strokeDashoffset: circleCircumference - (Math.PI * 50 * params.difficultyOffset) / 180,
-    '@media (min-height: 1440px)': {
-      strokeWidth: 10,
-      r: 65,
-      strokeDasharray: 2 * 65 * Math.PI,
-      strokeDashoffset: 2 * 65 * Math.PI - (Math.PI * 65 * params.difficultyOffset) / 180,
-    },
+  zone: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(var(--ox-progress-highlight), 0.72)',
   },
   indicator: {
-    stroke: 'red',
-    strokeWidth: 16,
-    fill: 'transparent',
-    r: 50,
-    cx: 250,
-    cy: 250,
-    strokeDasharray: circleCircumference,
-    strokeDashoffset: circleCircumference - 3,
-    '@media (min-height: 1440px)': {
-      strokeWidth: 18,
-      r: 65,
-      strokeDasharray: 2 * 65 * Math.PI,
-      strokeDashoffset: 2 * 65 * Math.PI - 5,
-    },
-  },
-  button: {
     position: 'absolute',
-    left: '50%',
-    top: '50%',
-    transform: 'translate(-50%, -50%)',
-    backgroundColor: theme.colors.dark[5],
-    width: 25,
-    height: 25,
-    textAlign: 'center',
-    borderRadius: 5,
-    fontSize: 16,
+    top: 0,
+    bottom: 0,
+    width: '0.2vh',
+    marginLeft: '-0.1vh',
+    backgroundColor: '#fff',
+  },
+  label: {
+    maxWidth: '100%',
+    marginBottom: '0.45vh',
+    padding: '0 0.8vh',
+    textOverflow: 'ellipsis',
+    overflow: 'hidden',
+    whiteSpace: 'nowrap',
+    fontFamily: 'Roboto, sans-serif',
+    fontSize: '1.2vh',
     fontWeight: 500,
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    '@media (min-height: 1440px)': {
-      width: 30,
-      height: 30,
-      fontSize: 22,
-    },
+    letterSpacing: '0.06em',
+    lineHeight: 1,
+    textTransform: 'uppercase',
+    color: '#e8e8e8',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.65)',
   },
 }));
 
@@ -104,9 +84,18 @@ const SkillCheck: React.FC = () => {
     difficulty: 'easy',
     key: 'e',
   });
-  const { classes } = useStyles({ difficultyOffset: skillCheck.difficultyOffset });
+  const { classes } = useStyles();
+  useHotbarOffset();
+  const zoneStart = ((skillCheck.angle + 90) / 360) * 100;
+  const zoneWidth = (skillCheck.difficultyOffset / 360) * 100;
 
-  useNuiEvent('startSkillCheck', (data: { difficulty: GameDifficulty | GameDifficulty[]; inputs?: string[] }) => {
+  useNuiEvent('startSkillCheck', (data: { difficulty: GameDifficulty | GameDifficulty[]; inputs?: string[]; style?: SkillCheckStyle }) => {
+    const style = data.style === 'bounce' ? 'bounce' : 'bar';
+    // Bounce uses three passes of the same difficulty unless the script already passed a list.
+    if (style === 'bounce' && !Array.isArray(data.difficulty)) {
+      data.difficulty = [data.difficulty, data.difficulty, data.difficulty];
+    }
+
     dataRef.current = data;
     dataIndexRef.current = 0;
     const gameData = Array.isArray(data.difficulty) ? data.difficulty[0] : data.difficulty;
@@ -118,6 +107,7 @@ const SkillCheck: React.FC = () => {
       difficulty: gameData,
       keys: data.inputs?.map((input) => input.toLowerCase()),
       key: randomKey.toLowerCase(),
+      style,
     });
 
     setVisible(true);
@@ -156,14 +146,12 @@ const SkillCheck: React.FC = () => {
   };
 
   return (
-    <>
-      {visible && (
-        <>
-          <svg className={classes.svg}>
-            {/*Circle track*/}
-            <circle className={classes.track} />
-            {/*SkillCheck area*/}
-            <circle transform={`rotate(${skillCheck.angle}, 250, 250)`} className={classes.skillArea} />
+    <Box className={classes.wrapper}>
+      <ScaleFade visible={visible}>
+        <Box className={classes.container}>
+          <Text className={classes.label}>{skillCheck.key}</Text>
+          <Box className={classes.track}>
+            <Box className={classes.zone} style={{ left: `${zoneStart}%`, width: `${zoneWidth}%` }} />
             <Indicator
               angle={skillCheck.angle}
               offset={skillCheck.difficultyOffset}
@@ -180,11 +168,10 @@ const SkillCheck: React.FC = () => {
               className={classes.indicator}
               skillCheck={skillCheck}
             />
-          </svg>
-          <Box className={classes.button}>{skillCheck.key.toUpperCase()}</Box>
-        </>
-      )}
-    </>
+          </Box>
+        </Box>
+      </ScaleFade>
+    </Box>
   );
 };
 
